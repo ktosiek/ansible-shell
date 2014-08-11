@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import cmd
+from itertools import chain
 import ansible.runner
 from ansible.color import stringc, codeCodes
 import ansible.constants as C
@@ -70,6 +71,10 @@ class AnsibleShell(cmd.Cmd):
         parser.add_option('-i', '--inventory', default=C.DEFAULT_HOST_LIST,
                           dest='host_list',
                           help='Inventory file')
+        parser.add_option('-m', '--additional-module-path', default=[],
+                          dest='library_paths',
+                          action='append',
+                          help='Additional module library')
 
         return parser.parse_args()
 
@@ -92,7 +97,11 @@ class AnsibleShell(cmd.Cmd):
 
     def list_modules(self):
         modules = []
-        for root, dirs, files in os.walk(C.DEFAULT_MODULE_PATH):
+        module_paths = list(self.options.library_paths)
+        module_paths.insert(0, C.DEFAULT_MODULE_PATH)
+
+        for root, dirs, files in chain.from_iterable(
+                os.walk(library) for library in module_paths):
             for basename in files:
                 modules.append(basename)
 
