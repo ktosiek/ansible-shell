@@ -238,13 +238,13 @@ class AnsibleShell(cmd.Cmd):
                 successes += 1
 
         sys.stdout.write(
-            'Done: {done}/{all}, success: {successes}, failures: {failures}, dark: {dark}{CR}'
+            u'Done: {done}/{all}, success: {successes}, failures: {failures}, dark: {dark}{CR}'
             .format(
                 done=len(contacted) + len(dark),
                 all=len(self.ansible.inventory.list_hosts(self.options.cwd)),
-                successes=successes,
-                failures=failures,
-                dark=len(dark),
+                successes=stringc(unicode(successes), 'green') if successes else '0',
+                failures=stringc(unicode(failures), 'red') if failures else '0',
+                dark=stringc(unicode(len(dark)), 'red') if dark else '0',
                 CR=chr(curses.ascii.CR)))
 
     def emptyline(self):
@@ -384,4 +384,3 @@ if __name__ == '__main__':
 
     (options, args) = AnsibleShell.parse_opts()
     AnsibleShell(options, args).cmdloop()
-
