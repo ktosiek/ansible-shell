@@ -1,0 +1,17 @@
+language: python
+python:
+  - "2.7"
+env:
+  - ANSIBLE_GIT=
+  - ANSIBLE_GIT=1
+install:
+  - |
+    if [ -n "$ANSIBLE_GIT" ]; then
+      git clone --recursive https://github.com/ansible/ansible ~/ansible
+      pip install ~/ansible
+    fi
+  - pip install -e .
+  - pip install pytest
+script:
+  - ansible --version
+  - py.test
