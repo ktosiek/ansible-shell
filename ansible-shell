@@ -7,8 +7,9 @@ from ansible.color import stringc, codeCodes
 import ansible.constants as C
 from ansible import utils
 from ansible import callbacks
-from ansible.inventory import Host
+from ansible.inventory import Inventory, Host
 import ansible.utils.module_docs as module_docs
+import getpass
 import sys
 import os
 import pwd
@@ -39,7 +40,12 @@ class AnsibleShell(cmd.Cmd):
         self.options = options
         self.options.cwd = ''
         self.options.serial = 2
-        self.ansible = ansible.runner.Runner(host_list=self.options.host_list)
+        self.vault_password = self.load_vault_password()
+        self.ansible = ansible.runner.Runner(
+            inventory=Inventory(self.options.host_list,
+                                vault_password=self.vault_password),
+            vault_pass=self.vault_password,
+        )
         self.groups = self.ansible.inventory.groups_list().keys()
         self.hosts = self.ansible.inventory.groups_list()['all']
         self.read_config_file()
@@ -50,6 +56,18 @@ class AnsibleShell(cmd.Cmd):
             setattr(self, 'do_' + module, lambda arg, module=module: self.default(module + ' ' + arg))
             setattr(self, 'help_' + module, lambda module=module: self.helpdefault(module))
         cmd.Cmd.__init__(self)
+
+    def load_vault_password(self):
+        """Return the vault password based on self.options and user input"""
+        if self.options.ask_vault_pass and self.options.vault_password_file:
+            raise ValueError(
+                'Cannot use both --ask-vault-pass and --vault-password-file')
+
+        if self.options.ask_vault_pass:
+            return getpass.getpass('Vault password: ')
+        if self.options.vault_password_file:
+            with open(self.options.vault_password_file) as f:
+                return f.read().strip()
 
     def read_config_file(self):
         allowed_items = {
@@ -82,6 +100,13 @@ class AnsibleShell(cmd.Cmd):
         parser.add_option('-i', '--inventory', default=C.DEFAULT_HOST_LIST,
                           dest='host_list',
                           help='Inventory file')
+
+        parser.add_option('--ask-vault-pass', default=C.DEFAULT_ASK_VAULT_PASS,
+                          action="store_true",
+                          help="ask for vault password")
+        parser.add_option('--vault-password-file',
+                          default=C.DEFAULT_VAULT_PASSWORD_FILE,
+                          help="vault password file")
 
         return parser.parse_args()
 
@@ -160,7 +185,8 @@ class AnsibleShell(cmd.Cmd):
                 remote_user=opts.remote_user,
                 sudo=opts.sudo, sudo_user=opts.sudo_user,
                 timeout=int(opts.timeout),
-                host_list=opts.host_list
+                inventory=self.ansible.inventory,
+                vault_pass=self.vault_password,
             ).run()
             if results is None:
                 print "No hosts found"
