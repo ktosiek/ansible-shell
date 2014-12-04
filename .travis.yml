@@ -11,7 +11,9 @@ install:
       pip install ~/ansible
     fi
   - pip install -e .
-  - pip install pytest
+  - pip install pytest pytest-cov python-coveralls
 script:
   - ansible --version
-  - py.test
+  - py.test --cov=.
+after_success:
+  - coveralls
