@@ -1,7 +1,8 @@
 /ansible_shell.egg-info
-venv
+/.venv
 
 # py.test
 /ansible-shellc
 __pycache__/
 /.cache/
+/.coverage
