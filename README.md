@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ktosiek/ansible-shell.svg?branch=ktosiek)](https://travis-ci.org/ktosiek/ansible-shell)
-[![Coverage Status](https://img.shields.io/coveralls/ktosiek/ansible-shell.svg)](https://coveralls.io/r/ktosiek/ansible-shell)
+[![Coverage Status](https://coveralls.io/repos/ktosiek/ansible-shell/badge.png?branch=ktosiek)](https://coveralls.io/r/ktosiek/ansible-shell?branch=ktosiek)
 
 # ansible-shell
 
